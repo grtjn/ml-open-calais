@@ -14,6 +14,8 @@ $ mlpm deploy
 
 ## Usage
 
+Create an account at the [Thomson Reuters Open Calais™ API](http://new.opencalais.com/opencalais-api/), login, and look at your profile details for your access token. Use that in below code:
+
 ```xquery
 xquery version "1.0-ml";
 
