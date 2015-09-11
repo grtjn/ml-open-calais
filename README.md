@@ -19,7 +19,7 @@ Create an account at the [Thomson Reuters Open Calais™ API](http://new.opencal
 ```xquery
 xquery version "1.0-ml";
 
-import module namespace oc = "http://marklogic.com/opencalais";
+import module namespace oc = "http://marklogic.com/opencalais" at "/ext/mlpm_modules/ml-open-calais/opencalais.xqy";
 
 let $oc-license := "..."
 let $article-uri := "http://developer.marklogic.com/blog/FirstJSONDoc"
