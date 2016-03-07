@@ -10,6 +10,12 @@ declare option xdmp:mapping "false";
 
 declare variable $memcache as map:map := map:map();
 
+declare variable $cache-root as xs:string := "/opencalais-cache/";
+
+declare function oc:setCacheRoot($new-root as xs:string) as empty-sequence() {
+  xdmp:set($cache-root, $new-root)
+};
+
 declare function oc:enrich($uri as xs:string, $data as node(), $license as xs:string) as element(rdf:RDF)? {
   oc:enrich($uri, $data, $license, ())
 };
@@ -33,10 +39,14 @@ declare function oc:enrich($uri as xs:string, $data as node(), $license as xs:st
 };
 
 declare function oc:persistCache() {
+  oc:persistCache(xdmp:default-permissions(), xdmp:default-collections())
+};
+
+declare function oc:persistCache($document-permissions, $collections) {
   for $uri in map:keys($memcache)
   return (
     xdmp:log(concat("Persisting ", $uri, " to database..")),
-    xdmp:document-insert($uri, map:get($memcache, $uri))
+    xdmp:document-insert($uri, map:get($memcache, $uri), $document-permissions, $collections)
   )
 };
 
@@ -83,7 +93,7 @@ declare private function oc:get($uri as xs:string, $data as node(), $license as 
 };
 
 declare private function oc:getFromCache($uri as xs:string) as element(rdf:RDF)? {
-  let $uri := concat("/opencalais-cache/", encode-for-uri(encode-for-uri($uri)), ".xml")
+  let $uri := concat($cache-root, encode-for-uri(encode-for-uri($uri)), ".xml")
   let $inmem := map:get($memcache, $uri)
   return
   if ($inmem) then
@@ -93,7 +103,7 @@ declare private function oc:getFromCache($uri as xs:string) as element(rdf:RDF)?
 };
 
 declare private function oc:putInCache($uri as xs:string, $rdf as element(rdf:RDF)) as empty-sequence() {
-  let $uri := concat("/opencalais-cache/", encode-for-uri(encode-for-uri($uri)), ".xml")
+  let $uri := concat($cache-root, encode-for-uri(encode-for-uri($uri)), ".xml")
   return
     map:put($memcache, $uri, $rdf)
 };
