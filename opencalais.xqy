@@ -2,6 +2,7 @@ xquery version "1.0-ml";
 
 module namespace oc = "http://marklogic.com/opencalais";
 
+declare namespace http = "xdmp:http";
 declare namespace rdf  ="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
 declare default function namespace "http://www.w3.org/2005/xpath-functions";
@@ -67,7 +68,7 @@ declare private function oc:get($uri as xs:string, $data as node(), $license as 
           <outputFormat>xml/rdf</outputFormat>
         </headers>
         <data>{xdmp:quote($data)}</data>
-        <format xmlns="xdmp:document-get">xml</format>
+        <format xmlns="xdmp:document-get">text</format>
       </options>
       )
     } catch ($e) {
@@ -75,8 +76,8 @@ declare private function oc:get($uri as xs:string, $data as node(), $license as 
     }
   return
     (: check for errors :)
-    if (number($response[1]//*:code) ge 400) then (
-      if (contains($response[2], "403 Developer Over Qps")) then (
+    if ($response[1] instance of element(error:error) or $response[1]/http:code ge 400) then (
+      if ($response[1]/http:code eq 429 or contains($response[2], "403 Developer Over Qps")) then (
         xdmp:log(concat("Rate limit exceeded for ", $uri, ", trying again in 2 sec..")),
         xdmp:sleep(2000),
         oc:get($uri, $data, $license, $language)
@@ -88,7 +89,7 @@ declare private function oc:get($uri as xs:string, $data as node(), $license as 
         xdmp:log(($uri, $data, $license, $language, $response))
       )
     ) else (
-      $response[2]/rdf:RDF
+      xdmp:unquote($response[2])/rdf:RDF
     )
 };
 
